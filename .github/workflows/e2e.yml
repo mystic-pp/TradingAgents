@@ -1,0 +1,40 @@
+# 端到端测试。命令行由 scripts/e2e_cli_server.py 提供给浏览器。
+# 当前用例不调用模型，因此不需要 AI_GATEWAY_API_KEY。
+name: e2e
+on:
+  pull_request:
+  push:
+    branches: [main]
+permissions:
+  contents: read
+jobs:
+  e2e:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/setup-node@820762786026740c76f36085b0efc47a31fe5020 # v7.0.0
+        with:
+          node-version: 24
+          cache: npm
+      - uses: actions/setup-python@e797f83bcb11b83ae66e0230d6156d7c80228e7c # v6.0.0
+        with:
+          python-version: '3.12'
+      - run: npm ci
+      - run: pip install -r requirements-e2e.txt
+      - run: npx e2e-web install chromium --with-deps
+      - run: npx e2e run --reporter list,junit
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-report
+          path: |
+            .e2e/report.json
+            .e2e/junit.xml
+          if-no-files-found: warn
+      - if: ${{ !cancelled() }}
+        uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a # v7.0.1
+        with:
+          name: e2e-artifacts
+          path: .e2e/results
+          if-no-files-found: warn
+          retention-days: 7

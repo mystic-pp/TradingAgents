@@ -30,11 +30,15 @@ IDLE_SECONDS = 20
 
 
 def ensure_project_python() -> None:
-    """Re-exec into the project venv when the runner starts system Python."""
+    """Re-exec into the project venv when the runner starts system Python.
+
+    ``.venv/bin/python`` is a symlink to the system interpreter. Python decides
+    it is a venv from ``argv[0]``, so compare prefixes instead of resolved paths.
+    """
     venv_python = ROOT / ".venv" / "bin" / "python"
     if not venv_python.exists():
         return
-    if Path(sys.executable).resolve() == venv_python.resolve():
+    if Path(sys.prefix).resolve() == (ROOT / ".venv").resolve():
         return
     os.execv(venv_python, [str(venv_python), *sys.argv])
 

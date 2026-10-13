@@ -2,7 +2,10 @@ import type { E2EConfig } from 'e2e';
 import { web } from '@e2e-dev/web';
 import { gateway } from 'ai';
 
-// 先不绑定被测地址。以后在运行时用 APP_URL 指定。
+// Plain HTTP is legal only for a loopback base URL. The ONT stays on
+// http://192.168.1.1; scripts/ont-proxy.mjs forwards the loopback port to it.
+const ontOrigin = process.env.ONT_ORIGIN ?? 'http://192.168.1.1';
+
 export default {
   agents: {
     default: {
@@ -13,7 +16,15 @@ export default {
   targets: [{
     engine: web(),
     app: {
-      url: process.env.APP_URL ?? 'http://localhost:3000',
+      url: 'http://127.0.0.1:0',
+      readyUrl: 'http://127.0.0.1:{port}/admin/login.asp',
+      command: {
+        executable: 'node',
+        args: ['scripts/ont-proxy.mjs', '--port', '{port}'],
+        env: { ONT_ORIGIN: ontOrigin },
+        startupTimeout: 20_000,
+        log: '.e2e/logs/app.log',
+      },
     },
   }],
 } satisfies E2EConfig;

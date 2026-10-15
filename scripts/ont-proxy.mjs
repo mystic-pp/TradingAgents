@@ -2,8 +2,8 @@
  * Loopback reverse proxy for the ONT admin UI.
  *
  * e2e allows a plain-HTTP base URL only on a loopback host, so the runner
- * opens http://127.0.0.1:{port}/admin/login.asp and this process forwards
- * that path to the device (ONT_ORIGIN, default http://192.168.1.1).
+ * opens http://127.0.0.1:{port}/ and this process forwards that path to the
+ * device (ONT_ORIGIN, default http://192.168.0.1).
  * It listens on 127.0.0.1 only and forwards to that single origin.
  */
 import http from 'node:http';
@@ -35,7 +35,7 @@ function readPort() {
 }
 
 function readOrigin() {
-  const raw = process.env.ONT_ORIGIN ?? 'http://192.168.1.1';
+  const raw = process.env.ONT_ORIGIN ?? 'http://192.168.0.1';
   let url;
   try {
     url = new URL(raw);
